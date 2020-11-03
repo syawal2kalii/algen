@@ -35,9 +35,21 @@ def inisialisasi():
         Slot.slots.append(Slot(slot.mulai, slot.berakhir, slot.hari))
 
 
+def deinisialisasi():
+    Group.groups = []
+    Professor.professors = []
+    CourseClass.classes = []
+    Room.rooms = []
+    Slot.slots = []
+
+
 def generate(request):
+    deinisialisasi()
     inisialisasi()
+    print("len course class generate:", len(CourseClass.classes))
     algen.algo()
+
+    print("len course class :", len(CourseClass.classes))
 
     # groupsemester = [1,3,5]
     # matkulsemester = [1,3,5]

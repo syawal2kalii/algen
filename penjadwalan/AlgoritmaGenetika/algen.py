@@ -1,12 +1,23 @@
 import penjadwalan.models as datadb
 from penjadwalan.AlgoritmaGenetika.classes import *
+
+# from penjadwalan.views import deinisialisasi
 from math import ceil, log2
+import random
 
 cpg = []
 lts = []
 slots = []
 max_score = None
 bits_needed_backup_store = {}
+
+
+def deinisialisasi():
+    Group.groups = []
+    Professor.professors = []
+    CourseClass.classes = []
+    Room.rooms = []
+    Slot.slots = []
 
 
 def bits_needed(x):
@@ -53,6 +64,8 @@ def convert_input_to_bin():
         ) * len(datadb.Mata_kuliah.objects.filter(semester=semester_tersedia[a]))
     print("#1.1 Max Chromosomes =", max_chromosomes)
 
+    # deinisialisasi()
+
     # generate random gen jika di butuhkan
     if len(Professor.professors) != max_chromosomes:
         selisih = max_chromosomes - int(len(Professor.professors))
@@ -68,7 +81,7 @@ def convert_input_to_bin():
         selisih = max_chromosomes - int(len(Group.groups))
         for i in range(selisih):
             Group.groups.append(Group.groups[0])
-
+    print("#1.1 len setiap class berubah menjadi ", max_chromosomes)
     # generate cpg = 0000000000,0000000
     # chromosome cpg id = [
     #   0, 0, 0,
@@ -97,7 +110,8 @@ def convert_input_to_bin():
         )
 
     print("#1.2 chromosome cpg id =", cpg)
-
+    print("#1.2 len course class", len(CourseClass.classes))
+    print("len bits needed ", bits_needed(CourseClass.classes))
     for _c in range(len(cpg)):
         if _c % 3 == 0:
             cpg[_c] = (bin(cpg[_c])[2:]).rjust(bits_needed(CourseClass.classes), "0")
@@ -124,19 +138,20 @@ def convert_input_to_bin():
 
     cpg = join_cpg_pair(cpg)
     print("#1.4 cpg pair ", cpg)
-    # cpg =  [
-    #   '000000000000',
-    #   '000100010001',
-    #   '001000100010',
-    #   '001100110011',
-    #   '010001000100',
-    #   '010100000101',
-    #   '000000000000',
-    #   '000000000000',
-    #   '000000000000',
-    #   '000000000000',
-    #   '000000000000',
-    #   '000000000000']
+    cpg = [
+        "000000000000",
+        "000100010001",
+        "001000100010",
+        "001100110011",
+        "010001000100",
+        "010100000101",
+        "000000000000",
+        "000000000000",
+        "000000000000",
+        "000000000000",
+        "000000000000",
+        "000000000000",
+    ]
 
     # 0 -> 0b0 -> .......000000
     # 1 -> 0b1 -> .......000001
@@ -155,20 +170,45 @@ def convert_input_to_bin():
     print("#1.6 max score =", max_score)
     # max_score = panjangcpg*jumlah aturan
     """
-  banyak group semester unique = 1,3,5
-  banyak matkul semester unique = 1,3,5
-  semester tersedia = 1,3,5
+    banyak group semester unique = 1,3,5
+    banyak matkul semester unique = 1,3,5
+    semester tersedia = 1,3,5
 
-  panjangchromosome = banyakgroup di semester [0]+[1]+[2] * n matkul semester [0,3,5]
-  pjgc
-  for a in range(len(semester_tersedia)) :
-      pjgc += len(Group.objects.get(semester=semester_tersedia[a]))*len(Matkul.objects.get(semester=semester_tersedia[a]))
+    panjangchromosome = banyakgroup di semester [0]+[1]+[2] * n matkul semester [0,3,5]
+    pjgc
+    for a in range(len(semester_tersedia)) :
+        pjgc += len(Group.objects.get(semester=semester_tersedia[a]))*len(Matkul.objects.get(semester=semester_tersedia[a]))
 
-  getgroupbysemesterunique
-  group semester = 3 (2018,2019,2020)
-  matkul semester = 2  
-  maksimal = 2*2 3*
-  """
+    getgroupbysemesterunique
+    group semester = 3 (2018,2019,2020)
+    matkul semester = 2  
+    maksimal = 2*2 3*
+    """
+
+
+def init_population(n):
+    #
+    # chromosomes : [['0000000000000000', '0001000100010111', '0010001000101000', '0011001100110011', '0100010001000110', '0101000001010000', '0000000000000001', '0000000000000111', '0000000000000010', '0000000000001001', '0000000000000101', '0000000000000100']]
+    # chromosomes : [
+    #                ['0000000000000000', '0001000100010111', '0010001000101000', '0011001100110011', '0100010001000110', '0101000001010000', '0000000000000001', '0000000000000111', '0000000000000010', '0000000000001001', '0000000000000101', '0000000000000100'],
+    #                ['0000000000000100', '0001000100011000', '0010001000101000', '0011001100111010', '0100010001000000', '0101000001011011', '0000000000000111', '0000000000000010', '0000000000001001', '0000000000001001', '0000000000001010', '0000000000000110']
+    #               ]
+    # chromosomes : [
+    #               ['0000000000000000', '0001000100010111', '0010001000101000', '0011001100110011', '0100010001000110', '0101000001010000', '0000000000000001', '0000000000000111', '0000000000000010', '0000000000001001', '0000000000000101', '0000000000000100'],
+    #               ['0000000000000100', '0001000100011000', '0010001000101000', '0011001100111010', '0100010001000000', '0101000001011011', '0000000000000111', '0000000000000010', '0000000000001001', '0000000000001001', '0000000000001010', '0000000000000110'],
+    #               ['0000000000000111', '0001000100010001', '0010001000100011', '0011001100110011', '0100010001000000', '0101000001011000', '0000000000000100', '0000000000001001', '0000000000001011', '0000000000000101', '0000000000000011', '0000000000000101']
+    #               ]
+    # #
+    print("##2.1 init population ({})".format(n))
+    global cpg, lts, slots
+    chromosomes = []
+    for _n in range(n):
+        chromosome = []
+        for _c in cpg:
+            chromosome.append(_c + random.choice(slots) + random.choice(lts))
+        chromosomes.append(chromosome)
+        print("chromosomes :", chromosomes)
+    return chromosomes
 
 
 def algo():
@@ -176,3 +216,4 @@ def algo():
     # inisialisasi()
     generation = 0
     convert_input_to_bin()
+    population = init_population(3)
