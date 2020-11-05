@@ -1,5 +1,6 @@
 import penjadwalan.models as datadb
 from penjadwalan.AlgoritmaGenetika.classes import *
+import sys
 
 # from penjadwalan.views import deinisialisasi
 from math import ceil, log2
@@ -211,9 +212,179 @@ def init_population(n):
     return chromosomes
 
 
+def waktu_bits(chromosome):
+    i = (
+        bits_needed(CourseClass.classes)
+        + bits_needed(Professor.professors)
+        + bits_needed(Group.groups)
+    )
+    return chromosome[i : i + bits_needed(Slot.slots)]
+
+
+def pengajar_bits(chromosome):
+    i = bits_needed(CourseClass.classes)
+    # return ....
+    return chromosome[i : i + bits_needed(Professor.professors)]
+
+
+def waktu_bentrok(a, b):
+    if waktu_bits(a) == waktu_bits(b):
+        return 1
+    return 0
+
+
+def ruangan_bits(chromosome):
+    # return letak chromosomes ruangan_bits -> chromosome[14:16] (2 terakhir)
+    i = (
+        bits_needed(CourseClass.classes)
+        + bits_needed(Professor.professors)
+        + bits_needed(Group.groups)
+        + bits_needed(Slot.slots)
+    )
+    return chromosome[i : i + bits_needed(Room.rooms)]
+
+
+def gunakan_ruangan_kosong(chromosome):
+    scores = 0
+    print(chromosome)
+    print(len(chromosome) - 1)
+    for i in range(len(chromosome) - 1):
+        clash = False
+        for j in range(i + 1, len(chromosome)):
+            # if j == 1 and i == 1:
+            #     sys.exit()
+            # untuk melihat yang di cocokkan
+            # print("chromosome[i]", chromosome[i], " nilai i", i)
+            # print("chromosome[i]", chromosome[j], " nilai j", j)
+            if waktu_bentrok(chromosome[i], chromosome[j]) and ruangan_bits(
+                chromosome[i]
+            ) == ruangan_bits(chromosome[j]):
+                # melihat cromosome yang clash / bertabrakan
+                # print("clash true")
+                # print("chromosome[i]", chromosome[i], " nilai i", i)
+                # print("chromosome[j]", chromosome[j], " nilai j", j)
+                clash = True
+        if not clash:
+            # print("score +1")
+            scores = scores + 1
+            # print("nilai score chromosome/populasi ke ", i, " ", scores)
+        # if j == 2 and i == 2:
+        #     sys.exit()
+    # print("nilai score keseluruhan:", scores)
+    return scores
+
+
+def pengajar_tidak_bersamaan(chromosome):
+    scores = 0
+    for i in range(len(chromosome) - 1):
+        clash = False
+        for j in range(i + 1, len(chromosome)):
+            if waktu_bentrok(chromosome[i], chromosome[j]) and pengajar_bits(
+                chromosome[i]
+            ) == pengajar_bits(chromosome[j]):
+                print("clash true")
+                print("chromosome[i]", chromosome[i], " nilai i", i)
+                print("chromosome[j]", chromosome[j], " nilai j", j)
+                clash = True
+        if not clash:
+            scores = scores + 1
+    return scores
+
+
+def evaluate(chromosomes):
+    # gunakan_ruangan_kosong (use_spare_classroom)
+    # pengajar_mengajar_tdk_bersamaan (fakulty_member_one_class)
+    # penyesuaian_size_ruangan
+    # kelas_tidak_bertabrakan_dengan_kelas_lain
+    # cek_matkul_lab_mendapatkan_ruangan_lab
+    # jadwal_lab_sesuai_dengan_waktu_lab
+    global max_score
+    score = 0
+    score = score + gunakan_ruangan_kosong(chromosomes)
+    print("##evaluate score gunakan ruangan kosong", score)
+    score = score + pengajar_tidak_bersamaan(chromosomes)
+    print("##evaluate score pengajar_tidak_bersamaan", score)
+    # print("score :", score)
+    # sys.exit()
+    return score / max_score
+
+
+def crossover(population):
+    print("3.0 Crossover")
+    a = random.randint(0, len(population) - 1)
+    b = random.randint(0, len(population) - 1)
+    cut = random.randint(0, len(population[0]))
+    population.append(population[a][:cut] + population[b][cut:])
+
+
 def algo():
     print("#0 Algoritma Genetika Mulai")
     # inisialisasi()
     generation = 0
     convert_input_to_bin()
-    population = init_population(3)
+    # population = init_population(3)
+    population = [
+        [
+            "0000000000000000",
+            "0001000100010111",
+            "0010001000101000",
+            "0011001100110011",
+            "0100010001000110",
+            "0101000001010000",
+            "0000000000000001",
+            "0000000000000111",
+            "0000000000000010",
+            "0000000000001001",
+            "0000000000000101",
+            "0000000000000100",
+        ],
+        [
+            "0000000000000100",
+            "0001000100011000",
+            "0010001000101000",
+            "0011001100111010",
+            "0100010001000000",
+            "0101000001011011",
+            "0000000000000111",
+            "0000000000000010",
+            "0000000000001001",
+            "0000000000001001",
+            "0000000000001010",
+            "0000000000000110",
+        ],
+        [
+            "0000000000000111",
+            "0001000100010001",
+            "0010001000100011",
+            "0011001100110011",
+            "0100010001000000",
+            "0101000001011000",
+            "0000000000000100",
+            "0000000000001001",
+            "0000000000001011",
+            "0000000000000101",
+            "0000000000000011",
+            "0000000000000101",
+        ],
+    ]
+
+    print("\n----------Algoritma Genetika ------------")
+    while True:
+        if evaluate(max(population, key=evaluate)) == 1 or generation == 500:
+            print("generation :", generation)
+            print(
+                "best chromosome fitness value",
+                evaluate(max(population, key=evaluate)),
+            )
+            print("Best Chromosome: ", max(population, key=evaluate))
+
+        else:
+            print("generation ke  :", generation)
+            # print(
+            #     "best chromosome fitness value sementara",
+            #     evaluate(max(population, key=evaluate)),
+            # )
+            # sys.exit()
+            for _c in range(len(population)):
+                crossover(population)
+        sys.exit()

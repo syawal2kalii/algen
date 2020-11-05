@@ -2,6 +2,7 @@ from django.shortcuts import render
 import penjadwalan.models as datadb
 import penjadwalan.AlgoritmaGenetika.algen as algen
 from penjadwalan.AlgoritmaGenetika.classes import *
+import subprocess as sp
 
 # Create your views here.
 def hello(request):
@@ -44,6 +45,7 @@ def deinisialisasi():
 
 
 def generate(request):
+    tmp = sp.call("clear", shell=True)
     deinisialisasi()
     inisialisasi()
     print("len course class generate:", len(CourseClass.classes))
